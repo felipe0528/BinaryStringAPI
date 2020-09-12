@@ -26,7 +26,37 @@ namespace BinaryStringAPI.Repository
 
         private bool ValidateBinary(BinaryString binary)
         {
-            throw new NotImplementedException();
+            bool valid = false;
+            List<string> prefixes = GeneratePrefixes(binary.Name);
+            var countCero = binary.Name.Count(x => x == '0');
+            var countOne = binary.Name.Count(x => x == '1');
+
+            var validPrefixes = true;
+            foreach (var prefix in prefixes)
+            {
+                var prefixCountCero = prefix.Count(x => x == '0');
+                var prefixCountOne = prefix.Count(x => x == '1');
+                if (prefixCountOne< prefixCountCero)
+                {
+                    validPrefixes = false;
+                }
+            }
+
+            if ((countCero== countOne) && validPrefixes)
+            {
+                valid = true;
+            }
+            return valid;
+        }
+
+        private List<string> GeneratePrefixes(string name)
+        {
+            List<string> list = new List<string>();
+            for (int i = 1; i < name.Length; i++)
+            {
+                list.Add(name.Substring(0, i));
+            }
+            return list;
         }
 
         public async Task<bool> Delete(string name)
@@ -61,6 +91,8 @@ namespace BinaryStringAPI.Repository
 
         public async Task<bool> Update(BinaryString binary)
         {
+            binary.Valid = ValidateBinary(binary);
+
             ReplaceOneResult updateResult = await _context.BinaryStrings
                         .ReplaceOneAsync(
                             filter: g => g.Id == binary.Id,
