@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BinaryStringAPI.Models;
 using BinaryStringAPI.Repository;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,34 +24,59 @@ namespace BinaryStringAPI.Controllers
 
         // GET: api/<BinaryStringsController>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public async Task<IActionResult> GetAsync()
         {
-            return new string[] { "value1", "value2" };
+            return new ObjectResult(await _binaryRepository.GetAllBinaryStrings());
         }
 
-        // GET api/<BinaryStringsController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        // GET api/<BinaryStringsController>/{name}
+        [HttpGet("{name}", Name = "Get")]
+        public async Task<IActionResult> Get(string name)
         {
-            return "value";
+            var binary = await _binaryRepository.GetBinaryString(name);
+
+            if (binary == null)
+                return new NotFoundResult();
+
+            return new ObjectResult(binary);
         }
 
         // POST api/<BinaryStringsController>
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task<IActionResult> Post([FromBody] BinaryString binary)
         {
+            await _binaryRepository.Create(binary);
+            return new OkObjectResult(binary);
         }
 
-        // PUT api/<BinaryStringsController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        // PUT api/<BinaryStringsController>/{name}
+        [HttpPut("{name}")]
+        public async Task<IActionResult> Put(string name, [FromBody] BinaryString binary)
         {
+            var binaryFromDb = await _binaryRepository.GetBinaryString(name);
+
+            if (binaryFromDb == null)
+                return new NotFoundResult();
+
+            binary.Id = binaryFromDb.Id;
+
+            await _binaryRepository.Update(binary);
+
+            return new OkObjectResult(binary);
         }
 
-        // DELETE api/<BinaryStringsController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        // DELETE api/<BinaryStringsController>/{name}
+        [HttpDelete("{name}")]
+        public async Task<IActionResult> Delete(string name)
         {
+            var binaryFromDb = await _binaryRepository.GetBinaryString(name);
+
+            if (binaryFromDb == null)
+                return new NotFoundResult();
+
+            await _binaryRepository.Delete(name);
+
+            return new OkResult();
         }
     }
 }
