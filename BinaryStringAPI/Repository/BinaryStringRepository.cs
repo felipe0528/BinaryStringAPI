@@ -1,4 +1,6 @@
-﻿using BinaryStringAPI.Models;
+﻿using BinaryStringAPI.Data;
+using BinaryStringAPI.Models;
+using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,29 +10,57 @@ namespace BinaryStringAPI.Repository
 {
     public class BinaryStringRepository : IBinaryStringRepository
     {
-        public Task Create(BinaryString game)
+        private readonly IBinaryContext _context;
+
+        public BinaryStringRepository(IBinaryContext context)
         {
-            throw new NotImplementedException();
+            _context = context;
         }
 
-        public Task<bool> Delete(string name)
+        public async Task Create(BinaryString binary)
         {
-            throw new NotImplementedException();
+            await _context.BinaryStrings.InsertOneAsync(binary);
         }
 
-        public Task<IEnumerable<BinaryString>> GetAllBinaryStrings()
+        public async Task<bool> Delete(string name)
         {
-            throw new NotImplementedException();
+            FilterDefinition<BinaryString> filter = Builders<BinaryString>
+                .Filter.Eq(m => m.Name, name);
+
+            DeleteResult deleteResult = await _context
+                                                .BinaryStrings
+                                                .DeleteOneAsync(filter);
+
+            return deleteResult.IsAcknowledged
+                && deleteResult.DeletedCount > 0;
+        }
+
+        public async Task<IEnumerable<BinaryString>> GetAllBinaryStrings()
+        {
+            return await _context.BinaryStrings
+                            .Find(_ => true)
+                            .ToListAsync();
         }
 
         public Task<BinaryString> GetBinaryString(string name)
         {
-            throw new NotImplementedException();
+            FilterDefinition<BinaryString> filter = Builders<BinaryString>
+                .Filter.Eq(m => m.Name, name);
+
+            return _context.BinaryStrings
+                    .Find(filter)
+                    .FirstOrDefaultAsync();
         }
 
-        public Task<bool> Update(BinaryString game)
+        public async Task<bool> Update(BinaryString binary)
         {
-            throw new NotImplementedException();
+            ReplaceOneResult updateResult = await _context.BinaryStrings
+                        .ReplaceOneAsync(
+                            filter: g => g.Id == binary.Id,
+                            replacement: binary);
+
+            return updateResult.IsAcknowledged
+                    && updateResult.ModifiedCount > 0;
         }
     }
 }
