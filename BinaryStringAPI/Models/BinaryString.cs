@@ -12,5 +12,6 @@ namespace BinaryStringAPI.Models
         [BsonId]
         public ObjectId Id { get; set; }
         public string Name { get; set; }
+        public bool Valid { get; set; }
     }
 }
