@@ -19,7 +19,14 @@ namespace BinaryStringAPI.Repository
 
         public async Task Create(BinaryString binary)
         {
+            binary.Valid = ValidateBinary(binary);
+
             await _context.BinaryStrings.InsertOneAsync(binary);
+        }
+
+        private bool ValidateBinary(BinaryString binary)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<bool> Delete(string name)
