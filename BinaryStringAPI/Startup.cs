@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BinaryStringAPI.Data;
+using BinaryStringAPI.Repository;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 
 namespace BinaryStringAPI
 {
@@ -25,6 +28,20 @@ namespace BinaryStringAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+
+            services.Configure<Settings>(
+                options =>
+                {
+                    options.ConnectionString =
+                        Configuration.GetSection("MongoDb:ConnectionString").Value;
+                    options.Database = Configuration.GetSection("MongoDb:Database").Value;
+                });
+
+            services.AddSingleton<IMongoClient, MongoClient>(
+                _ => new MongoClient(Configuration.GetSection("MongoDb:ConnectionString").Value));
+
+            services.AddTransient<IBinaryContext, BinaryContext>();
+            services.AddTransient<IBinaryStringRepository, BinaryStringRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
